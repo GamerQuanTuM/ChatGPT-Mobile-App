@@ -24,11 +24,24 @@ const NewChatScreen = () => {
   function OnChangeInput(input) {
     setText(input);
   }
-  React.useEffect(() => {
-    const fetchAllChats = async () => {
-      const response = await axiosInstance.get('/history');
+
+  const fetchAllChats = async excludeId => {
+    try {
+      const response = await axiosInstance.get(
+        `/history${excludeId ? `?exclude=${excludeId}` : ''}`,
+      );
+      if (!response.data) {
+        setLoading(true);
+        return <NoData />;
+      }
       setChatHistory(response.data);
-    };
+      setLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  React.useEffect(() => {
     fetchAllChats();
   }, []);
 
@@ -57,10 +70,15 @@ const NewChatScreen = () => {
       const response = await axiosInstance.post('/turbo-3.5', {
         content: text,
       });
+      if (!response.data) {
+        setLoading(true);
+        return <NoData />;
+      }
       setLoading(false);
       setChatHistory(chatHistory);
       setChatGPT(response.data);
       setText('');
+      await fetchAllChats();
     } catch (error) {
       console.error(error.message);
     }
@@ -73,7 +91,9 @@ const NewChatScreen = () => {
           source={{uri: 'https://links.papareact.com/2i6'}}
           style={styles.Logo}
         />
-        <Text selectable={true} style={styles.LogoText}>ChatGPT is thinking!!!</Text>
+        <Text selectable={true} style={styles.LogoText}>
+          ChatGPT is thinking!!!
+        </Text>
       </View>
     );
   }
@@ -83,9 +103,12 @@ const NewChatScreen = () => {
       {chatGPT.response ? (
         <>
           <ScrollView style={styles.mainChatScreen}>
-            <View>
+          {/* REMOVED FOR DUPLICATE RESPONSE */}
+            {/* <View>
               <View style={styles.queryContainer}>
-                <Text selectable={true} style={styles.query}>{chatGPT.query}</Text>
+                <Text selectable={true} style={styles.query}>
+                  {chatGPT.query}
+                </Text>
               </View>
               <View style={styles.responseContainer}>
                 <View style={styles.responseHeader}>
@@ -97,22 +120,26 @@ const NewChatScreen = () => {
                   {chatGPT && chatGPT.response?.replace(/\n/g, '\n')}
                 </Text>
               </View>
-            </View>
+            </View> */}
 
             {chatHistory?.map(({_id, response, query}) => (
               <View key={_id}>
                 <View style={styles.queryContainer}>
-                  <Text selectable={true} style={styles.query}>{query}</Text>
-                  {/* <AntDesign
+                  <Text selectable={true} style={styles.query}>
+                    {query}
+                  </Text>
+                  <AntDesign
                     size={25}
                     name="delete"
                     style={styles.deleteLogo}
                     onPress={() => handleRemove(_id)}
-                  /> */}
+                  />
                 </View>
                 <View style={styles.responseContainer}>
                   <View style={styles.responseHeader}>
-                    <Text selectable={true} style={styles.responseHeaderContent}>
+                    <Text
+                      selectable={true}
+                      style={styles.responseHeaderContent}>
                       ChatGPT Response
                     </Text>
                   </View>
@@ -132,18 +159,22 @@ const NewChatScreen = () => {
               name="arrow-with-circle-down"
               style={styles.arrow}
             />
-            <Text selectable={true} style={styles.prompt}>Type a Prompt to get Response</Text>
+            <Text selectable={true} style={styles.prompt}>
+              Type a Prompt to get Response
+            </Text>
           </View>
         </View>
       )}
 
-      {/* {chatGPT.response && (
+      {chatGPT.response && (
         <TouchableOpacity
           style={styles.deleteButtonContainer}
           onPress={handleDelete}>
-          <Text selectable={true} style={styles.deleteButtonText}>Delete Everything</Text>
+          <Text selectable={true} style={styles.deleteButtonText}>
+            Delete Everything
+          </Text>
         </TouchableOpacity>
-      )} */}
+      )}
 
       {/* Input Box */}
       <View style={styles.fixedContent}>
@@ -242,7 +273,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     color: 'white',
     paddingHorizontal: 10,
-    // caretColor: 'white',
   },
   sendIcon: {
     position: 'absolute',
@@ -292,6 +322,15 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     fontSize: 20,
   },
+  noDataContainer: {},
 });
 
 export default NewChatScreen;
+
+const NoData = () => {
+  return (
+    <View style={styles.noDataContainer}>
+      <Text>ChatGPT failed to give response</Text>
+    </View>
+  );
+};
