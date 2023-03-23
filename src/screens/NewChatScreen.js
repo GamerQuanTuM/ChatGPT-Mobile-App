@@ -73,7 +73,7 @@ const NewChatScreen = () => {
           source={{uri: 'https://links.papareact.com/2i6'}}
           style={styles.Logo}
         />
-        <Text style={styles.LogoText}>ChatGPT is thinking!!!</Text>
+        <Text selectable={true} style={styles.LogoText}>ChatGPT is thinking!!!</Text>
       </View>
     );
   }
@@ -85,15 +85,15 @@ const NewChatScreen = () => {
           <ScrollView style={styles.mainChatScreen}>
             <View>
               <View style={styles.queryContainer}>
-                <Text style={styles.query}>{chatGPT.query}</Text>
+                <Text selectable={true} style={styles.query}>{chatGPT.query}</Text>
               </View>
               <View style={styles.responseContainer}>
                 <View style={styles.responseHeader}>
-                  <Text style={styles.responseHeaderContent}>
+                  <Text selectable={true} style={styles.responseHeaderContent}>
                     ChatGPT Response
                   </Text>
                 </View>
-                <Text style={styles.response}>
+                <Text selectable={true} style={styles.response}>
                   {chatGPT && chatGPT.response?.replace(/\n/g, '\n')}
                 </Text>
               </View>
@@ -102,7 +102,7 @@ const NewChatScreen = () => {
             {chatHistory?.map(({_id, response, query}) => (
               <View key={_id}>
                 <View style={styles.queryContainer}>
-                  <Text style={styles.query}>{query}</Text>
+                  <Text selectable={true} style={styles.query}>{query}</Text>
                   {/* <AntDesign
                     size={25}
                     name="delete"
@@ -112,11 +112,11 @@ const NewChatScreen = () => {
                 </View>
                 <View style={styles.responseContainer}>
                   <View style={styles.responseHeader}>
-                    <Text style={styles.responseHeaderContent}>
+                    <Text selectable={true} style={styles.responseHeaderContent}>
                       ChatGPT Response
                     </Text>
                   </View>
-                  <Text style={styles.response}>
+                  <Text selectable={true} style={styles.response}>
                     {response?.replace(/\n/g, '\n')}
                   </Text>
                 </View>
@@ -132,7 +132,7 @@ const NewChatScreen = () => {
               name="arrow-with-circle-down"
               style={styles.arrow}
             />
-            <Text style={styles.prompt}>Type a Prompt to get Response</Text>
+            <Text selectable={true} style={styles.prompt}>Type a Prompt to get Response</Text>
           </View>
         </View>
       )}
@@ -141,7 +141,7 @@ const NewChatScreen = () => {
         <TouchableOpacity
           style={styles.deleteButtonContainer}
           onPress={handleDelete}>
-          <Text style={styles.deleteButtonText}>Delete Everything</Text>
+          <Text selectable={true} style={styles.deleteButtonText}>Delete Everything</Text>
         </TouchableOpacity>
       )} */}
 
