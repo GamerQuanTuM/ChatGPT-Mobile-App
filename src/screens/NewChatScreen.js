@@ -10,7 +10,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {COLOURS, height, Icons, width} from '../constants';
 import {axiosInstance} from '../../axios';
 
@@ -41,7 +41,7 @@ const NewChatScreen = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchAllChats();
   }, []);
 
@@ -49,6 +49,10 @@ const NewChatScreen = () => {
     try {
       await axiosInstance.delete(`/turbo-3.5/delete/${id}`);
       setChatHistory(chatHistory.filter(item => item._id !== id));
+      if (chatHistory.length === 0) {
+        setChatGPT([]);
+      }
+      setLoading(false);
     } catch (error) {
       console.error(error.message);
     }
@@ -75,7 +79,6 @@ const NewChatScreen = () => {
         return <NoData />;
       }
       setLoading(false);
-      setChatHistory(chatHistory);
       setChatGPT(response.data);
       setText('');
       await fetchAllChats();
@@ -97,14 +100,14 @@ const NewChatScreen = () => {
       </View>
     );
   }
+
   return (
     <SafeAreaView style={styles.screen}>
       {/* Body */}
-      {chatGPT.response ? (
-        <>
-          <ScrollView style={styles.mainChatScreen}>
+      {chatHistory || chatGPT.response ? (
+        <ScrollView style={styles.mainChatScreen}>
           {/* REMOVED FOR DUPLICATE RESPONSE */}
-            {/* <View>
+          {/* <View>
               <View style={styles.queryContainer}>
                 <Text selectable={true} style={styles.query}>
                   {chatGPT.query}
@@ -122,51 +125,23 @@ const NewChatScreen = () => {
               </View>
             </View> */}
 
-            {chatHistory?.map(({_id, response, query}) => (
-              <View key={_id}>
-                <View style={styles.queryContainer}>
-                  <Text selectable={true} style={styles.query}>
-                    {query}
-                  </Text>
-                  <AntDesign
-                    size={25}
-                    name="delete"
-                    style={styles.deleteLogo}
-                    onPress={() => handleRemove(_id)}
-                  />
-                </View>
-                <View style={styles.responseContainer}>
-                  <View style={styles.responseHeader}>
-                    <Text
-                      selectable={true}
-                      style={styles.responseHeaderContent}>
-                      ChatGPT Response
-                    </Text>
-                  </View>
-                  <Text selectable={true} style={styles.response}>
-                    {response?.replace(/\n/g, '\n')}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-        </>
-      ) : (
-        <View style={styles.mainChatScreen}>
-          <View style={styles.blankScreen}>
-            <Entypo
-              size={50}
-              name="arrow-with-circle-down"
-              style={styles.arrow}
-            />
-            <Text selectable={true} style={styles.prompt}>
-              Type a Prompt to get Response
-            </Text>
-          </View>
-        </View>
-      )}
+          {chatHistory?.map(({_id, response, query}) => (
+            <View key={_id}>
+              <Chat
+                id={_id}
+                response={response}
+                query={query}
+                AntDesign={AntDesign}
+                handleRemove={handleRemove}
+              />
+            </View>
+          ))}
+        </ScrollView>
+      ) : null}
 
-      {chatGPT.response && (
+      {chatHistory.length === 0 && <BlankScreen Entypo={Entypo} />}
+
+      {chatHistory.length > 0 && (
         <TouchableOpacity
           style={styles.deleteButtonContainer}
           onPress={handleDelete}>
@@ -281,8 +256,8 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   blankScreen: {
-    height: '100%',
     alignItems: 'center',
+    flex: 1,
   },
   arrow: {
     color: 'white',
@@ -332,5 +307,44 @@ const NoData = () => {
     <View style={styles.noDataContainer}>
       <Text>ChatGPT failed to give response</Text>
     </View>
+  );
+};
+
+const BlankScreen = ({Entypo}) => {
+  return (
+    <View style={styles.blankScreen}>
+      <Entypo size={50} name="arrow-with-circle-down" style={styles.arrow} />
+      <Text selectable={true} style={styles.prompt}>
+        Type a Prompt to get Response
+      </Text>
+    </View>
+  );
+};
+
+const Chat = ({id, response, query, AntDesign, handleRemove}) => {
+  return (
+    <>
+      <View style={styles.queryContainer}>
+        <Text selectable={true} style={styles.query}>
+          {query}
+        </Text>
+        <AntDesign
+          size={25}
+          name="delete"
+          style={styles.deleteLogo}
+          onPress={() => handleRemove(id)}
+        />
+      </View>
+      <View style={styles.responseContainer}>
+        <View style={styles.responseHeader}>
+          <Text selectable={true} style={styles.responseHeaderContent}>
+            ChatGPT Response
+          </Text>
+        </View>
+        <Text selectable={true} style={styles.response}>
+          {response?.replace(/\n/g, '\n')}
+        </Text>
+      </View>
+    </>
   );
 };
